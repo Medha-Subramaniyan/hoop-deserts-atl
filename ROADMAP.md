@@ -29,7 +29,7 @@ also loaded but not yet cleaned or joined. Known bugs to fix in Phase 1:
   ```
   (`pd.to_numeric`)
   ```
-- [ ] `census`: replace `-666666666` with `NaN` — look up why Census uses this value
+- [x] `census`: replace `-666666666` with `NaN` — look up why Census uses this value
   ```
   before just patching it
   ```
@@ -37,11 +37,11 @@ also loaded but not yet cleaned or joined. Known bugs to fix in Phase 1:
   ```
   widths — verify on one row by hand first
   ```
-- [ ] `courts`: find and inspect the row(s) with coordinates outside Georgia; decide
+- [x] `courts`: find and inspect the row(s) with coordinates outside Georgia; decide
   ```
   keep/drop/investigate and note why
   ```
-- [ ] `courts` vs `tracts`: print `.crs` on both — same or different? Understand what
+- [x] `courts` vs `tracts`: print `.crs` on both — same or different? Understand what
   ```
   breaks on mismatch before fixing it
   ```
