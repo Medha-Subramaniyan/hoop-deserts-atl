@@ -32,62 +32,6 @@ All in `data/processed/tableau/`.
 | `chicago_tracts.shp` | 781   | one tract polygon    | Chicago choropleth     |
 
 
-### Which source each sheet uses — read this first
-
-Tableau locks in a **primary data source** the moment you drop the first field on
-a sheet. Get it wrong and you'll hit *"Fields cannot be used from the
-chicago_tracts data source, because there is no relationship to the primary data
-source"* — Tableau trying to blend when you didn't want it to.
-
-**The rule: click the data source in the Data pane BEFORE dragging anything.**
-
-| Sheet | Primary source | Never touch |
-|---|---|---|
-| 1 — The Reversal | `all_tracts.csv` | — |
-| 2 — What Actually Sorts | `all_tracts.csv` | — |
-| 3a — Court dots (Atlanta) | `all_courts.csv` | tracts |
-| 3b — Court dots (Chicago) | `all_courts.csv` | tracts |
-| 3c — Choropleth (Atlanta) | `atlanta_tracts.shp` | everything else |
-| 3d — Choropleth (Chicago) | `chicago_tracts.shp` | everything else |
-| 4 — Who "underserved" means | `all_tracts.csv` | — |
-| 5 — A court is not a court | `all_courts.csv` | tracts |
-| 6 — What nobody records | `all_courts.csv` | tracts |
-| 7 — Neighborhood table | `all_tracts.csv` | — |
-
-**Never mix two sources on one sheet.** Blending aggregates the secondary source
-to the primary's grain; with 578 courts and 1,311 tracts, that silently produces
-wrong numbers. Each sheet is single-source. The dashboard connects them with
-*filter actions*, not blends.
-
-**Four separate map worksheets, not two.** Each city's choropleth is its own
-spatial connection, so it needs its own sheet. Tile all four 2×2 on the dashboard.
-
-> **If you already hit the blend warning:** delete the worksheet and start over.
-> Clearing the shelves is not always enough — the primary source stays locked
-> once set. New sheet → click the shapefile in the Data pane → *then*
-> double-click `Geometry`. Verify: the shapefile should show a **blue checkmark**
-> (primary). An orange checkmark with link icons means it's still blending.
-
-### Shapefile field names are truncated
-
-The `.shp` format caps field names at 10 characters, so the spatial sources use
-**different names from the CSVs**:
-
-| CSV field | Shapefile field |
-|---|---|
-| `court_count` | `court_coun` |
-| `courts_per_10k` | `courts_per` |
-| `courts_per_sqmi` | `courts_p_1` |
-| `median_household_income` | `median_hou` |
-| `total_population` | `total_popu` |
-| `neighborhood` | `neighborho` |
-| `pct_hispanic` | `pct_hispan` |
-| `poverty_rate` | `poverty_ra` |
-
-`GEOID`, `NAMELSAD`, `LPA`, `OBESITY`, `MHLTH`, `income_q`, `city`, `pct_white`,
-`pct_black`, `area_sqmi` and `ALAND` are unchanged. Rename the truncated ones in
-Tableau (right-click → Rename) so tooltips read properly.
-
 **CSVs cannot draw polygons.** They carry `lat`/`lon` centroids, which give you
 dots. For the filled choropleth you must connect to the `.shp` files. A shapefile
 is really 5+ sibling files (`.shp`, `.dbf`, `.shx`, `.prj`, `.cpg`) — keep them
@@ -299,8 +243,6 @@ Single hue, light → dark: **Blue** (Tableau's sequential "Blue" palette).
 
 **Article section: 3 & 4. This is the dashboard's headline.**
 
-> **Data source: `all_tracts.csv`** — click it in the Data pane before you drag anything.
-
 ### Build
 
 1. **Columns:** `Income quartile (clean)`
@@ -365,8 +307,6 @@ Chicago's are overwhelmingly Park District."*
 
 **Article section: 7. The counterweight to Sheet 1.**
 
-> **Data source: `all_tracts.csv`**
-
 ### Build
 
 1. **Columns:** `Income quartile (clean)`
@@ -414,14 +354,9 @@ true.
 
 **Article section: 4 & hero visual.**
 
-> **Four separate worksheets.** Dots come from `all_courts.csv`; each choropleth
-> comes from its own shapefile. Do not attempt to combine them on one sheet.
+### 6a. Court locations (dot map)
 
-### 6a. Court locations (dot map) — two sheets
-
-> **Data source: `all_courts.csv`**
-
-1. New worksheet → click `all_courts.csv` in the Data pane **first**
+1. Go to the `all_courts.csv` source
 2. Double-click `Latitude` then `Longitude` → Tableau builds a map
 3. Set both to **Dimension** (right-click → Dimension) so every court is its own mark
 4. **Detail:** `id` — forces one mark per court
@@ -431,14 +366,9 @@ true.
 
 
 
-### 6b. Inactivity (choropleth) — two more sheets
+### 6b. Inactivity (choropleth)
 
-> **Data sources: `chicago_tracts.shp` and `atlanta_tracts.shp`** — one worksheet
-> each. This is where the blend warning bites if you skip step 1.
-
-1. **New worksheet.** In the Data pane, **click `chicago_tracts` first** — before
-   touching any shelf. The first field you drop sets the primary source, and a
-   sheet that already has a CSV field on it will try to blend instead.
+1. Switch to the `chicago_tracts.shp` source
 2. Double-click `Geometry` → polygons render
 3. **Color:** `LPA` → Blue sequential palette
 4. Edit Colors → **5 steps** (stepped, not continuous)
@@ -456,18 +386,14 @@ true.
 
 ```
 <NAMELSAD>
-<Neighborho>
+<Neighborhood>
 
 Physically inactive: <LPA>
 Obesity: <OBESITY>
-Median household income: <Median Hou>
-Basketball courts: <Court Coun>
-Population: <Total Popu>
+Median household income: <Median Household Income>
+Basketball courts: <Court Count>
+Population: <Total Population>
 ```
-
-> Those are the **truncated shapefile field names**, not the CSV ones. Rename them
-> in Tableau (right-click → Rename) if you want readable tooltip labels — the
-> underlying field is the same.
 
 > `Neighborhood` is NULL for 361 Atlanta tracts (outside city limits) and 0
 > Chicago tracts. Tableau shows a blank line; acceptable, or wrap in
@@ -488,8 +414,6 @@ That contrast is the article's thesis in one image.
 ## 7. Sheet 4 — "Who 'Underserved' Means" (grouped bars)
 
 **Article section: 5. The most original finding, and the least obvious.**
-
-> **Data source: `all_tracts.csv`**
 
 ### Build
 
@@ -547,8 +471,7 @@ Hispanic**.
 
 **Article section: 6. Where the article stops being about counts.**
 
-> **Data source: `all_courts.csv`** — this sheet counts *courts*, not tracts, so
-> the grain has to be the court file.
+Use the `all_courts.csv` source.
 
 ### Build
 
@@ -593,11 +516,9 @@ directional, not conclusive.** Put it in the caption, not the footnotes.
 
 **Article section: 6 & the thesis. Do not bury this.**
 
-> **Data source: `all_courts.csv`**
-
 ### Build
 
-1. Confirm `all_courts.csv` is primary
+1. Source: `all_courts.csv`
 2. Create calcs for each attribute, e.g.:
   ```
    SUM(IF NOT ISNULL([Lit]) THEN 1 ELSE 0 END) / COUNT([id])
@@ -652,12 +573,9 @@ from the public record of public space.
 
 **Article section: 7. The receipts.**
 
-> **Data source: `all_tracts.csv`** — the table is tract-grain rolled up to
-> neighborhood, so it must come from the tract file, not the court file.
-
 ### Build
 
-1. Confirm `all_tracts.csv` is primary
+1. Source: `all_tracts.csv`
 2. **Rows:** `Neighborhood`, `City`
 3. **Text/Columns:** `MEDIAN(LPA)`, `MEDIAN(OBESITY)`, `SUM(Court Count)`,
   `MEDIAN(Median Household Income)`, `SUM(Total Population)`
@@ -742,19 +660,13 @@ Add exactly two, in a single row at the top:
 
 Dashboard → Actions → Add Action → **Filter**:
 
-- Source: Sheet 3c / 3d (the choropleth sheets)
+- Source: Sheet 3 (choropleth)
 - Target: Sheet 7 (neighborhood table)
-- Field mapping: `GEOID` (shapefile) → `GEOID` (CSV)
 - Run on: **Select**
 - Clearing the selection: Show all values
 
 Now clicking a tract on the map filters the detail table to it. This is what lets
 a skeptical reader check any specific place you name.
-
-> **This is the one place the two sources legitimately talk to each other** — and
-> a filter action is the right mechanism, not a blend. The action passes a
-> `GEOID` value between sheets; it never merges the tables or changes any
-> aggregate.
 
 ---
 
@@ -823,9 +735,6 @@ Do this last, all at once:
 
 ## 14. Pre-publication checklist
 
-- [ ] Every sheet has exactly one data source — no orange link icons anywhere
-- [ ] Choropleths built on the `.shp` files, dot maps on `all_courts.csv`
-- [ ] Truncated shapefile fields (`court_coun`, `neighborho`, …) renamed in tooltips
 - [ ] Every rate uses `Courts per 10k (aggregate)`, never `AVG([Courts Per 10k])`
 - [ ] `income_q = "nan"` excluded on every sheet
 - [ ] Race bars grouped, never stacked, with the ACS caption visible
